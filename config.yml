@@ -3,10 +3,46 @@
 # by Kyzeragon
 #
 
-# Shows stats in place of the horse's nametag when right-clicking with empty hand
+# Available tags to be used in formats:
+# {name}
+# {maxhealthcolor}
+# {maxhealth}
+# {currenthealthcolor}
+# {currenthealth}
+# {speedcolor}
+# {speed}
+# {jumpcolor}
+# {jump}
+# {ratingcolor}
+# {rating}
+
+# Chat colors to be used to indicate good or bad stats
+color:
+  belowAverage: "c"
+  average: "e"
+  aboveAverage: "a"
+
+
+# Shows info in place of the horse's nametag when right-clicking with empty hand
 tag:
   enabled: true
+  # Format -- Can use & in place of §
+  format: "&7Health: {maxhealthcolor}{maxhealth} &f- &7Speed: {speedcolor}{speed} &f- &7Jump: {jumpcolor}{jump}"
+  # The number of server ticks to display the horse info
+  duration: 200
 
-# Shows stats in the player's chat when right-clicking with empty hand
+
+# Shows info in the player's chat when right-clicking with empty hand
 chat:
   enabled: true
+  # Format - array of lines -- Can use & in place of §
+  format: ["&7Name: &f{name}", "&7Health: {currenthealthcolor}{currenthealth}&7/{maxhealthcolor}{maxhealth}", "&7Speed: {speedcolor}{speed} &7m/s", "&7Jump Height: {jumpcolor}{jump} &7m", "&7Rating: {ratingcolor}{rating}"]
+
+# Formula for calculating rating; each will be multiplied by the weight and added together
+# Negative, zero, and positive values are all allowed
+# The {ratingcolor} is calculated using average values multiplied by these weights,
+# then comparing to the current horse's rating
+ratingWeights:
+  health: 1
+  speed: 5
+  jump: 4

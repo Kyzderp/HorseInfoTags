@@ -3,7 +3,23 @@ main: io.github.kyzderp.horseinfotags.HorseInfoTags
 version: 1.0.0
 
 commands:
-  
+  horseinfotags:
+    description: Reloads the HorseInfoTags configuration.
+    usage: /<command> reload
+    permission: horseinfotags.admin
+    permission-message: You do not have permission to do this!
 
 permissions:
+  horseinfotags.*:
+    description: Permissions for all!
+    children:
+      horseinfotags.admin:
+        description: Administrator commands e.g. reloading.
+        default: false
+      horseinfotags.tag:
+        description: Can click on a horse to see displayed tag above horse.
+        default: false
+      horseinfotags.chat:
+        description: Can click on a horse to see displayed chat info.
+        default: false
   

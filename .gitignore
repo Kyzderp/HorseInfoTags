@@ -45,3 +45,5 @@ Temporary Items
 *.project
 *.class
 *.prefs
+
+bin/
