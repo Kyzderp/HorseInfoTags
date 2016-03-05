@@ -1,0 +1,12 @@
+#
+# HorseInfoTags
+# by Kyzeragon
+#
+
+# Shows stats in place of the horse's nametag when right-clicking with empty hand
+tag:
+  enabled: true
+
+# Shows stats in the player's chat when right-clicking with empty hand
+chat:
+  enabled: true
