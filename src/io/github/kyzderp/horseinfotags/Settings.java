@@ -1,3 +1,20 @@
+/**
+ * This file is part of HorseInfoTags.
+ * 
+ * HorseInfoTags is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * HorseInfoTags is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with HorseInfoTags.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+
 package io.github.kyzderp.horseinfotags;
 
 import java.text.DecimalFormat;
@@ -24,6 +41,8 @@ public class Settings
 	private double healthWeight;
 	private double speedWeight;
 	private double jumpWeight;
+	
+	private String cannotRenameMessage;
 
 	private double averageRating;
 
@@ -32,6 +51,7 @@ public class Settings
 		this.plugin = plugin;
 	}
 
+	//////////////////////// LOAD ///////////////////////
 	public void loadSettings()
 	{
 		FileConfiguration config = this.plugin.getConfig();
@@ -51,6 +71,8 @@ public class Settings
 		this.healthWeight = config.getDouble("ratingWeights.health");
 		this.speedWeight = config.getDouble("ratingWeights.speed");
 		this.jumpWeight = config.getDouble("ratingWeights.jump");
+		
+		this.cannotRenameMessage = config.getString("cannotRenameMessage").replaceAll("&", "\u00A7");
 
 		double jump = -0.1817584952 * Math.pow(0.7, 3) 
 				+ 3.689713992 * 0.7 * 0.7 
@@ -63,6 +85,8 @@ public class Settings
 				+ new DecimalFormat("#0.00").format(this.averageRating) + ".");
 	}
 
+	////////////////////// GETTERS //////////////////////
+	
 	public JavaPlugin getPlugin() {
 		return plugin;
 	}
@@ -113,5 +137,9 @@ public class Settings
 
 	public double getAverageRating() {
 		return averageRating;
+	}
+
+	public String getCannotRenameMessage() {
+		return cannotRenameMessage;
 	}
 }

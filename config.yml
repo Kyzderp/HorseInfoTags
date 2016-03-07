@@ -4,45 +4,54 @@
 #
 
 # Available tags to be used in formats:
-# {name}
-# {maxhealthcolor}
-# {maxhealth}
-# {currenthealthcolor}
-# {currenthealth}
-# {speedcolor}
-# {speed}
-# {jumpcolor}
-# {jump}
-# {ratingcolor}
-# {rating}
+# {name} - Name of the horse. If the horse has no name, this will be blank.
+# {maxhealthcolor} - Prefix color for good/bad/normal maximum health
+# {maxhealth} - Maximum health of the horse
+# {currenthealthcolor} - Prefix color for health - "average" health is considered 75% of maximum health
+# {currenthealth} - Current health of the horse
+# {speedcolor} - Prefix color for good/bad/normal speed
+# {speed} - Speed of the horse, in meters(blocks) per second
+# {jumpcolor} - Prefix color for good/bad/normal jump height
+# {jump} - Jump height of the horse, in meters(blocks)
+# {ratingcolor} - Prefix color for good/bad/normal rating
+# {rating} - Rating of the horse, as defined by the formula below
 
-# Chat colors to be used to indicate good or bad stats
+# Chat colors to be used to indicate good, bad, or normal stats.
+# Stats are only considered average when exactly the same as the average.
+# Average health: 22.5
+# Average speed: 9.675 m/s
+# Average jump: ~2.89 m
 color:
   belowAverage: "c"
   average: "e"
   aboveAverage: "a"
 
 
-# Shows info in place of the horse's nametag when right-clicking with empty hand
+# Shows info in place of the horse's nametag when right-clicking with empty hand.
 tag:
   enabled: true
   # Format -- Can use & in place of §
   format: "&7Health: {maxhealthcolor}{maxhealth} &f- &7Speed: {speedcolor}{speed} &f- &7Jump: {jumpcolor}{jump}"
-  # The number of server ticks to display the horse info
+  # The number of server ticks to display the horse info, after which the name will revert
   duration: 200
 
 
-# Shows info in the player's chat when right-clicking with empty hand
+# Shows info in the player's chat when right-clicking with empty hand.
 chat:
   enabled: true
   # Format - array of lines -- Can use & in place of §
   format: ["&7Name: &f{name}", "&7Health: {currenthealthcolor}{currenthealth}&7/{maxhealthcolor}{maxhealth}", "&7Speed: {speedcolor}{speed} &7m/s", "&7Jump Height: {jumpcolor}{jump} &7m", "&7Rating: {ratingcolor}{rating}"]
 
-# Formula for calculating rating; each will be multiplied by the weight and added together
-# Negative, zero, and positive values are all allowed
+# Formula for calculating rating; each will be multiplied by the weight and added together.
+# Negative, zero, and positive values are all allowed.
 # The {ratingcolor} is calculated using average values multiplied by these weights,
-# then comparing to the current horse's rating
+# then comparing to the current horse's rating.
+# Note that the rating is only a customizable convenience stat. If you don't want to use it, simply remove it from the formats.
 ratingWeights:
   health: 1
   speed: 5
   jump: 4
+
+# Error message to send to the user if they attempt to right click on the horse
+# with a named nametag when the stats are displaying in the name tag slot.
+cannotRenameMessage: "&8[&c!&8] &cError &8[&c!&8] &7Please wait until the stats have finished displaying to rename your horse!"

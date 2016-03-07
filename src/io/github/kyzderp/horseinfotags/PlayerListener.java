@@ -1,8 +1,25 @@
+/**
+ * This file is part of HorseInfoTags.
+ * 
+ * HorseInfoTags is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * HorseInfoTags is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with HorseInfoTags.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+
 package io.github.kyzderp.horseinfotags;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Material;
@@ -18,27 +35,45 @@ public class PlayerListener implements Listener
 	private Settings settings;
 	private JavaPlugin plugin;
 	private final NumberFormat df = new DecimalFormat("#0.00");
-	private HashSet<Horse> displaying;
+	private HashMap<Horse, String> displaying;
 
 	public PlayerListener(JavaPlugin plugin, Settings settings)
 	{
 		this.plugin = plugin;
 		this.settings = settings;
-		this.displaying = new HashSet<Horse>();
+		this.displaying = new HashMap<Horse, String>();
 	}
 
+	/**
+	 * When a player right clicks a horse, we should do something
+	 * @param event
+	 */
 	@EventHandler
 	public void onPlayerRightClickHorse(PlayerInteractEntityEvent event)
 	{
+		if (!(event.getRightClicked() instanceof Horse))
+			return;
+		
+		Horse horse = (Horse) event.getRightClicked();
+		
+		// The player is trying to rename the horse but it's currently displaying info in name tag
+		if (this.displaying.containsKey(horse)
+				&& (event.getPlayer().getInventory().getItemInMainHand().getType() == Material.NAME_TAG
+				&& event.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasDisplayName())
+				|| (event.getPlayer().getInventory().getItemInOffHand().getType() == Material.NAME_TAG
+				&& event.getPlayer().getInventory().getItemInOffHand().getItemMeta().hasDisplayName()))
+		{
+			event.getPlayer().sendMessage(this.settings.getCannotRenameMessage());
+			event.setCancelled(true);
+			return;
+		}
+		
+		// Clicking with empty hand = show stats
 		if ((event.getPlayer().getInventory().getItemInMainHand() == null
 				|| event.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR)
 				&& (event.getPlayer().getInventory().getItemInOffHand() == null
 				|| event.getPlayer().getInventory().getItemInOffHand().getType() != Material.NAME_TAG))
 		{			
-			if (!(event.getRightClicked() instanceof Horse))
-				return;
-			Horse horse = (Horse) event.getRightClicked();
-
 			String name = horse.getCustomName();
 			double health = horse.getMaxHealth();
 			String healthColor = this.compareAverage(health, 22.5);
@@ -58,7 +93,7 @@ public class PlayerListener implements Listener
 			String ratingColor = this.compareAverage(rating, this.settings.getAverageRating());
 
 			// Send as chat message
-			if (this.settings.isChatEnabled() && !this.displaying.contains(horse)
+			if (this.settings.isChatEnabled() && !this.displaying.containsKey(horse)
 					&& event.getPlayer().hasPermission("horseinfotags.chat"))
 			{
 				List<String> lines = this.settings.getChatFormat();
@@ -68,9 +103,9 @@ public class PlayerListener implements Listener
 					String info = lines.get(i).replaceAll("&", "\u00A7");
 					info = info.replaceAll("\\{name\\}", name == null ? "" : name);
 					info = info.replaceAll("\\{maxhealthcolor\\}", healthColor);
-					info = info.replaceAll("\\{maxhealth\\}", health + "");
+					info = info.replaceAll("\\{maxhealth\\}", df.format(health) + "");
 					info = info.replaceAll("\\{currenthealthcolor\\}", currentHealthColor);
-					info = info.replaceAll("\\{currenthealth\\}", currentHealth + "");
+					info = info.replaceAll("\\{currenthealth\\}", df.format(currentHealth) + "");
 					info = info.replaceAll("\\{speedcolor\\}", speedColor);
 					info = info.replaceAll("\\{speed\\}", df.format(speed));
 					info = info.replaceAll("\\{jumpcolor\\}", jumpColor);
@@ -84,15 +119,17 @@ public class PlayerListener implements Listener
 			}
 
 			// Display as tag over horse
-			if (this.settings.isTagEnabled() && !this.displaying.contains(horse)
+			if (this.settings.isTagEnabled() && !this.displaying.containsKey(horse)
 					&& event.getPlayer().hasPermission("horseinfotags.tag"))
 			{
+				this.displaying.put(horse, name == null ? "" : name);
+
 				String info = this.settings.getTagFormat();
 				info = info.replaceAll("\\{name\\}", name == null ? "" : name);
 				info = info.replaceAll("\\{maxhealthcolor\\}", healthColor);
-				info = info.replaceAll("\\{maxhealth\\}", health + "");
+				info = info.replaceAll("\\{maxhealth\\}", df.format(health) + "");
 				info = info.replaceAll("\\{currenthealthcolor\\}", currentHealthColor);
-				info = info.replaceAll("\\{currenthealth\\}", currentHealth + "");
+				info = info.replaceAll("\\{currenthealth\\}", df.format(currentHealth) + "");
 				info = info.replaceAll("\\{speedcolor\\}", speedColor);
 				info = info.replaceAll("\\{speed\\}", df.format(speed));
 				info = info.replaceAll("\\{jumpcolor\\}", jumpColor);
@@ -102,13 +139,20 @@ public class PlayerListener implements Listener
 
 				horse.setCustomName(info);
 				horse.setCustomNameVisible(true);
-				this.displaying.add(horse);
 
-				new RestoreNameTask(name, horse, this).runTaskLater(this.plugin, 200);
+				// Remember to restore afterwards!
+				new RestoreNameTask(horse, this).runTaskLater(this.plugin, this.settings.getTagDuration());
 			}
 		}
 	}
 
+	/**
+	 * Compares the current stat to the average stat as specified
+	 * then returns the appropriate format color
+	 * @param current
+	 * @param average
+	 * @return
+	 */
 	private String compareAverage(double current, double average)
 	{
 		if (current == average)
@@ -118,8 +162,13 @@ public class PlayerListener implements Listener
 		return "\u00A7" + this.settings.getAboveAvgColor();
 	}
 
-	public void removeHorse(Horse horse)
+	/**
+	 * For restoring nametag
+	 * @param horse
+	 * @return
+	 */
+	public String removeAndGetHorse(Horse horse)
 	{
-		this.displaying.remove(horse);
+		return this.displaying.remove(horse);
 	}
 }
